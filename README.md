@@ -160,21 +160,25 @@ The main form employs a [MessageFilter](https://learn.microsoft.com/en-us/dotnet
             switch (m.Msg)
             {
                 case WM_KEYDOWN:
-                    Keys key = (Keys)m.WParam;
-                    switch (key)
+                    if (Controls.OfType<ArrowKeyPictureBox>().Any(_ => _.Focused))
                     {
-                        case Keys.Up:
-                        case Keys.Down:
-                        case Keys.Left:
-                        case Keys.Right:
-                            BeginInvoke(new Action(() =>
-                            {
-                                foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
+                        Keys key = (Keys)m.WParam;
+                        switch (key)
+                        {
+                            case Keys.Up:
+                            case Keys.Down:
+                            case Keys.Left:
+                            case Keys.Right:
+                                BeginInvoke(new Action(() =>
                                 {
-                                    target.MoveProgrammatically(key);
-                                }
-                            }));
-                            break;
+                                    foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
+                                    {
+                                        target.MoveProgrammatically(key);
+                                    }
+                                }));
+                                // Suppress OS tabbing to prevent loss of focus.
+                                return true;
+                        }
                     }
                     break;
             }
@@ -190,11 +194,19 @@ Display collision status:
             {
                 if (!_prevWarning.Equals(control.Bounds))
                 {
-                    List<string> builder = new List<string>();
-                    builder.Add("Collision");
-                    builder.Add($"Moving {control.Name} @ {control.Bounds}");
+                    richTextBox.SelectionFont = new Font(richTextBox.Font, FontStyle.Bold);
                     richTextBox.SelectionColor = e.Cancel ? Color.Green : Color.Red;
+                    richTextBox.AppendText($"{Environment.NewLine}Collision{Environment.NewLine}");
+                    richTextBox.SelectionFont = new Font(richTextBox.Font, FontStyle.Regular);
+                    richTextBox.SelectionColor = Color.Black;
+
+                    List<string> builder = new List<string>();
+                    builder.Add($"Moving: {control.Name}");
+                    builder.Add($"@ {control.Bounds}");
+                    builder.Add($"Collided with: {e.Control.Name}");
+                    builder.Add($"@ {e.Control.Bounds}");
                     richTextBox.AppendText($"{string.Join(Environment.NewLine, builder)}{Environment.NewLine}");
+                    richTextBox.ScrollToCaret();
                     _prevWarning = control.Bounds;
                 }
             }

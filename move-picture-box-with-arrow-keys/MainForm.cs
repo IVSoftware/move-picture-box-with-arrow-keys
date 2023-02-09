@@ -24,10 +24,7 @@ namespace move_picture_box_with_arrow_keys
             switch (m.Msg)
             {
                 case WM_KEYDOWN:
-                    if (Controls.OfType<TextBoxBase>().Any(_ => _.Focused))
-                    {   /* G T K */
-                    }
-                    else
+                    if (Controls.OfType<ArrowKeyPictureBox>().Any(_ => _.Focused))
                     {
                         Keys key = (Keys)m.WParam;
                         switch (key)
