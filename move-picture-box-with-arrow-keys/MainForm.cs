@@ -43,7 +43,8 @@ namespace move_picture_box_with_arrow_keys
                                         target.MoveProgrammatically(key);
                                     }
                                 }));
-                                break;
+                                // Suppress OS tabbing to prevent loss of focus.
+                                return true;
                         }
                     }
                     break;
@@ -57,18 +58,19 @@ namespace move_picture_box_with_arrow_keys
             {
                 if (!_prevWarning.Equals(control.Bounds))
                 {
+                    richTextBox.SelectionFont = new Font(richTextBox.Font, FontStyle.Bold);
                     richTextBox.SelectionColor = e.Cancel ? Color.Green : Color.Red;
-                    richTextBox.Font = new Font(richTextBox.Font, FontStyle.Bold);
                     richTextBox.AppendText($"{Environment.NewLine}Collision{Environment.NewLine}");
-                    richTextBox.Font = new Font(richTextBox.Font, FontStyle.Regular);
-                    richTextBox.SelectionColor = Color.Chocolate;
+                    richTextBox.SelectionFont = new Font(richTextBox.Font, FontStyle.Regular);
+                    richTextBox.SelectionColor = Color.Black;
 
                     List<string> builder = new List<string>();
                     builder.Add($"Moving: {control.Name}");
-                    builder.Add( $"@ {control.Bounds}");
+                    builder.Add($"@ {control.Bounds}");
                     builder.Add($"Collided with: {e.Control.Name}");
                     builder.Add($"@ {e.Control.Bounds}");
                     richTextBox.AppendText($"{string.Join(Environment.NewLine, builder)}{Environment.NewLine}");
+                    richTextBox.ScrollToCaret();
                     _prevWarning = control.Bounds;
                 }
             }
@@ -96,40 +98,43 @@ namespace move_picture_box_with_arrow_keys
                         {
                             return;
                         }
-                        Top -= INCREMENT;
+                        Top = preview.Y;
                         break;
                     case Keys.Down:
                         if (Bottom >= Parent.Bottom)
                         {
                             return;
                         }
+                        preview.Y += INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Top += INCREMENT;
+                        Top = preview.Y;
                         break;
                     case Keys.Left:
                         if (Left <= 0)
                         {
                             return;
                         }
+                        preview.X -= INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Left -= INCREMENT;
+                        Left = preview.X;
                         break;
                     case Keys.Right:
                         if (Right >= Parent.Right)
                         {
                             return;
                         }
+                        preview.X += INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Left += INCREMENT;
+                        Left = preview.X;
                         break;
                 }
             }
@@ -178,13 +183,15 @@ namespace move_picture_box_with_arrow_keys
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            var rect = new Rectangle(
-                e.ClipRectangle.Location, 
-                new Size(
-                    (int)(e.ClipRectangle.Width - Pens.Red.Width),
-                    (int)(e.ClipRectangle.Height - Pens.Red.Width)));
-            e.Graphics.DrawRectangle(Pens.Red, rect);
-            //e.Graphics.FillRectangle(Brushes.Red, e.ClipRectangle);
+            if(IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
+            {
+                var rect = new Rectangle(
+                    e.ClipRectangle.Location, 
+                    new Size(
+                        (int)(e.ClipRectangle.Width - pen.Width),
+                        (int)(e.ClipRectangle.Height - pen.Width)));
+                e.Graphics.DrawRectangle(pen, rect);
+            }
         }
     }
 
