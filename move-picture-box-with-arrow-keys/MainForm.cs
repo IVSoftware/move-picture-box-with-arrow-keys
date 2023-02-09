@@ -83,6 +83,27 @@ namespace move_picture_box_with_arrow_keys
         {
             LostFocus += (sender, e) =>Refresh();
             GotFocus += (sender, e) =>Refresh();
+            MouseDown += (sender, e) =>
+            {
+                Focus();
+                foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
+                {
+                    if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
+                }
+                IsCurrentMoveTarget = true;
+            };
+            Paint += (sender, e) =>
+            {
+                if (Focused && IsCurrentMoveTarget) using (var pen = new Pen(Color.Fuchsia))
+                    {
+                        var rect = new Rectangle(
+                            e.ClipRectangle.Location,
+                            new Size(
+                                (int)(e.ClipRectangle.Width - pen.Width),
+                                (int)(e.ClipRectangle.Height - pen.Width)));
+                        e.Graphics.DrawRectangle(pen, rect);
+                    }
+            };
         }
 
         const int INCREMENT = 1;
@@ -162,43 +183,20 @@ namespace move_picture_box_with_arrow_keys
             }
         }
         public static event CollisionDetectedEventHandler CollisionDetected;
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            base.OnMouseDown(e);
-            Focus();
-            foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
-            {
-                if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
-            }
-            IsCurrentMoveTarget = true;
-        }
-        bool _isMoveTarget = false;
 
         public bool IsCurrentMoveTarget
         {
-            get => _isMoveTarget;
+            get => _isCurrentMoveTarget;
             set
             {
-                if (!Equals(_isMoveTarget, value))
+                if (!Equals(_isCurrentMoveTarget, value))
                 {
-                    _isMoveTarget = value;
+                    _isCurrentMoveTarget = value;
                     Refresh();
                 }
             }
         }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            if(Focused && IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
-            {
-                var rect = new Rectangle(
-                    e.ClipRectangle.Location, 
-                    new Size(
-                        (int)(e.ClipRectangle.Width - pen.Width),
-                        (int)(e.ClipRectangle.Height - pen.Width)));
-                e.Graphics.DrawRectangle(pen, rect);
-            }
-        }
+        bool _isCurrentMoveTarget = false;
     }
 
     delegate void CollisionDetectedEventHandler(Object sender, CollisionDetectedEventArgs e);

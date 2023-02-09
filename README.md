@@ -2,15 +2,47 @@ Your post describes some problems you're having with the timer scheme and inner 
 >[...] so I can find the picturebox that I am moving with the arrow keys and checking if it collides with other pictureboxes via tags.
 
 This "might" be considered an [X-Y Problem](https://meta.stackexchange.com/a/66378)
- because there may be a more optimal way than a timer to achieve what you wanted to do in the first place. Here's one alternative:
+ because there may be a more optimal way than a timer to achieve what you wanted to do in the first place (because timers can often be difficult to start and stop in predictable ways). Here's one alternative:
 
 ***
 **ArrowKeyPictureBox**
 
 Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)` and can also keep track of whether this particular instance `IsCurrentMoveTarget`. And when it _does_ become the current move target, it notifies all the _other_ instances that they no longer are.
 
+[![screenshot][1]][1]
+
+
     class ArrowKeyPictureBox : PictureBox
     {
+        public ArrowKeyPictureBox() 
+        {
+            LostFocus += (sender, e) =>Refresh();
+            GotFocus += (sender, e) =>Refresh();
+            MouseDown += (sender, e) =>
+            {
+                Focus();
+                foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
+                {
+                    if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
+                }
+                IsCurrentMoveTarget = true;
+            };
+            Paint += (sender, e) =>
+            {
+                if (Focused && IsCurrentMoveTarget) using (var pen = new Pen(Color.Fuchsia))
+                    {
+                        var rect = new Rectangle(
+                            e.ClipRectangle.Location,
+                            new Size(
+                                (int)(e.ClipRectangle.Width - pen.Width),
+                                (int)(e.ClipRectangle.Height - pen.Width)));
+                        e.Graphics.DrawRectangle(pen, rect);
+                    }
+            };
+        }
+
+Move method has collision detection and fires a cancellable event when imminent.
+
         const int INCREMENT = 1;
         public void MoveProgrammatically(Keys direction)
         {
@@ -87,54 +119,30 @@ Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)
                 return false;
             }
         }
-    }
-
-Example of managing the `IsCurrentMoveTarget` property:
-
         public static event CollisionDetectedEventHandler CollisionDetected;
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            base.OnMouseDown(e);
-            Focus();
-            foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
-            {
-                if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
-            }
-            IsCurrentMoveTarget = true;
-        }
-        bool _isMoveTarget = false;
+
+Determines whether this is the control to move, and whether to draw the focus rectangle.
 
         public bool IsCurrentMoveTarget
         {
-            get => _isMoveTarget;
+            get => _isCurrentMoveTarget;
             set
             {
-                if (!Equals(_isMoveTarget, value))
+                if (!Equals(_isCurrentMoveTarget, value))
                 {
-                    _isMoveTarget = value;
+                    _isCurrentMoveTarget = value;
                     Refresh();
                 }
             }
         }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            if(IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
-            {
-                var rect = new Rectangle(
-                    e.ClipRectangle.Location, 
-                    new Size(
-                        (int)(e.ClipRectangle.Width - pen.Width),
-                        (int)(e.ClipRectangle.Height - pen.Width)));
-                e.Graphics.DrawRectangle(pen, rect);
-            }
-        }
+        bool _isCurrentMoveTarget = false;
     }
+
 
 ***
 **Main Form**
 
-The main form listens for Up Down Left Right and broadcasts any occurrence to all of the `ArrowKeyPictureBox` instances it might hold. 
+The main form employs a [MessageFilter](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.application.addmessagefilter) for Up Down Left Right key events and broadcasts any occurrence to all of the `ArrowKeyPictureBox` instances it might hold.  
 
     public partial class MainForm : Form , IMessageFilter
     {
@@ -193,3 +201,6 @@ Display collision status:
         }
         Rectangle _prevWarning = new Rectangle();
     }
+
+
+  [1]: https://i.stack.imgur.com/MKawb.png
