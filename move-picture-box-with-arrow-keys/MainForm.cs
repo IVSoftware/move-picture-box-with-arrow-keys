@@ -79,6 +79,12 @@ namespace move_picture_box_with_arrow_keys
     }
     class ArrowKeyPictureBox : PictureBox
     {
+        public ArrowKeyPictureBox() 
+        {
+            LostFocus += (sender, e) =>Refresh();
+            GotFocus += (sender, e) =>Refresh();
+        }
+
         const int INCREMENT = 1;
         public void MoveProgrammatically(Keys direction)
         {
@@ -183,7 +189,7 @@ namespace move_picture_box_with_arrow_keys
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            if(IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
+            if(Focused && IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
             {
                 var rect = new Rectangle(
                     e.ClipRectangle.Location, 

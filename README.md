@@ -1,12 +1,13 @@
-Your post describes some problems you're having with the timer scheme and inner loop that you show in your code. But what is the purpose of this code? You state in the post that its _raison d'etre_ is:
+Your post describes some problems you're having with the timer scheme and inner loop that you show in your code. But what is your actual objective? You state in the post that its _raison d'etre_ is:
 >[...] so I can find the picturebox that I am moving with the arrow keys and checking if it collides with other pictureboxes via tags.
 
-This "might" be considered an X-Y problem because a Timer could be considered a loose cannon for an application like this where problems of this kind could be hard to avoid. I'd like to offer an alternative for what you were trying to do to begin with. 
+This "might" be considered an [X-Y Problem](https://meta.stackexchange.com/a/66378)
+ because there may be a more optimal way than a timer to achieve what you wanted to do in the first place. Here's one alternative:
 
 ***
 **ArrowKeyPictureBox**
 
-Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)` and can also keep track of whether this particular instance `IsCurrentMoveTarget`. And when it _becomes_ the current move target, it notifies all the _other_ instances that they no longer are.
+Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)` and can also keep track of whether this particular instance `IsCurrentMoveTarget`. And when it _does_ become the current move target, it notifies all the _other_ instances that they no longer are.
 
     class ArrowKeyPictureBox : PictureBox
     {
@@ -29,40 +30,43 @@ Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)
                         {
                             return;
                         }
-                        Top -= INCREMENT;
+                        Top = preview.Y;
                         break;
                     case Keys.Down:
                         if (Bottom >= Parent.Bottom)
                         {
                             return;
                         }
+                        preview.Y += INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Top += INCREMENT;
+                        Top = preview.Y;
                         break;
                     case Keys.Left:
                         if (Left <= 0)
                         {
                             return;
                         }
+                        preview.X -= INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Left -= INCREMENT;
+                        Left = preview.X;
                         break;
                     case Keys.Right:
                         if (Right >= Parent.Right)
                         {
                             return;
                         }
+                        preview.X += INCREMENT;
                         if (detectCollision())
                         {
                             return;
                         }
-                        Left += INCREMENT;
+                        Left = preview.X;
                         break;
                 }
             }
@@ -83,12 +87,15 @@ Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)
                 return false;
             }
         }
-Manage current move target, for example
+    }
+
+Example of managing the `IsCurrentMoveTarget` property:
 
         public static event CollisionDetectedEventHandler CollisionDetected;
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            Focus();
             foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
             {
                 if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
@@ -105,10 +112,21 @@ Manage current move target, for example
                 if (!Equals(_isMoveTarget, value))
                 {
                     _isMoveTarget = value;
-                    BorderStyle = IsCurrentMoveTarget ?
-                        BorderStyle.FixedSingle :
-                        BorderStyle.None;
+                    Refresh();
                 }
+            }
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if(IsCurrentMoveTarget) using(var pen = new Pen(Color.Fuchsia))
+            {
+                var rect = new Rectangle(
+                    e.ClipRectangle.Location, 
+                    new Size(
+                        (int)(e.ClipRectangle.Width - pen.Width),
+                        (int)(e.ClipRectangle.Height - pen.Width)));
+                e.Graphics.DrawRectangle(pen, rect);
             }
         }
     }
@@ -116,7 +134,7 @@ Manage current move target, for example
 ***
 **Main Form**
 
-What we need the main form to do is listen for Up Down Left Right and broadcast that occurrence to all of the `ArrowKeyPictureBox` instances it might hold.
+The main form listens for Up Down Left Right and broadcasts any occurrence to all of the `ArrowKeyPictureBox` instances it might hold. 
 
     public partial class MainForm : Form , IMessageFilter
     {
