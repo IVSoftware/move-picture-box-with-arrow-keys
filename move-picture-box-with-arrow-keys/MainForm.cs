@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace move_picture_box_with_arrow_keys
@@ -18,7 +12,13 @@ namespace move_picture_box_with_arrow_keys
             InitializeComponent();
             Application.AddMessageFilter(this);
             Disposed += (sender, e) =>Application.RemoveMessageFilter(this);
+            ArrowKeyPictureBox.CollisionDetected += onAnyCollisionDetected;
         }
+
+        private void onAnyCollisionDetected(object sender, CollisionDetectedEventArgs e)
+        {
+        }
+
         const int WM_KEYDOWN = 0x0100;
         public bool PreFilterMessage(ref Message m)
         {
@@ -101,6 +101,9 @@ namespace move_picture_box_with_arrow_keys
                     {
                         if(preview.IntersectsWith(control.Bounds))
                         {
+                            CollisionDetected?.Invoke(
+                                this, 
+                                new CollisionDetectedEventArgs(control: control));
                             return true;
                         }
                     }
@@ -108,6 +111,7 @@ namespace move_picture_box_with_arrow_keys
                 return false;
             }
         }
+        public static event CollisionDetectedEventHandler CollisionDetected;
         protected override void OnClick(EventArgs e)
         {
             base.OnClick(e);
@@ -133,5 +137,15 @@ namespace move_picture_box_with_arrow_keys
                 }
             }
         }
+    }
+
+    delegate void CollisionDetectedEventHandler(Object sender, CollisionDetectedEventArgs e);
+    class CollisionDetectedEventArgs : EventArgs
+    {
+        public CollisionDetectedEventArgs(Control control)
+        {
+            Control = control;
+        }
+        public Control Control { get; }
     }
 }
