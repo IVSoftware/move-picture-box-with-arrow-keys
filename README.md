@@ -2,12 +2,12 @@ Your post describes some problems you're having with the timer scheme and inner 
 >[...] so I can find the picturebox that I am moving with the arrow keys and checking if it collides with other pictureboxes via tags.
 
 This "might" be considered an [X-Y Problem](https://meta.stackexchange.com/a/66378)
- because there may be a more optimal way than a timer to achieve what you wanted to do in the first place (because timers can often be difficult to start and stop in predictable ways). Here's one alternative:
+ because there may be a more optimal way than a timer to achieve what you wanted to do in the first place (because a timer with a 20ms interval might present some race conditions that make it hard to start and stop predictably). Here's one alternative:
 
 ***
 **ArrowKeyPictureBox**
 
-Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)` and can also keep track of whether this particular instance `IsCurrentMoveTarget`. And when it _does_ become the current move target, it notifies all the _other_ instances that they no longer are.
+Consider customizing `PictureBox` that can `MoveProgrammatically(Keys direction)` when Left, Right, Up or Down is pressed. It would also need to keep track of whether this _particular_ picture box is the one that's supposed to move, based on its `IsCurrentMoveTarget` property. And when it _does_ become the current move target, it notifies all the _other_ instances that they no longer are.
 
 [![screenshot][1]][1]
 
