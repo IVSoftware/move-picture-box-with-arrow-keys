@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace move_picture_box_with_arrow_keys
 {
@@ -11,24 +14,49 @@ namespace move_picture_box_with_arrow_keys
         {
             InitializeComponent();
             Application.AddMessageFilter(this);
-            Disposed += (sender, e) =>Application.RemoveMessageFilter(this);
+            Disposed += (sender, e) => Application.RemoveMessageFilter(this);
             ArrowKeyPictureBox.CollisionDetected += onAnyCollisionDetected;
         }
 
         private void onAnyCollisionDetected(object sender, CollisionDetectedEventArgs e)
         {
+            e.Cancel = !e.Control.Name.Contains("Portal");
+            if (sender is Control control)
+            {
+                if (!_prevWarning.Equals(control.Bounds))
+                {
+                    List<string> builder = new List<string>();
+                    builder.Add("Collision");
+                    builder.Add($"Moving {control.Name} @ {control.Bounds}");
+                    richTextBox.SelectionColor = e.Cancel ? Color.Green : Color.Red;
+                    richTextBox.AppendText($"{string.Join(Environment.NewLine, builder)}{Environment.NewLine}");
+                    _prevWarning = control.Bounds;
+                }
+            }
         }
+        Rectangle _prevWarning = new Rectangle();
 
         const int WM_KEYDOWN = 0x0100;
         public bool PreFilterMessage(ref Message m)
         {
-            base.WndProc(ref m);
             switch (m.Msg)
             {
                 case WM_KEYDOWN:
-                    foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
+                    Keys key = (Keys)m.WParam;
+                    switch (key)
                     {
-                        target.MoveProgrammatically((Keys)m.WParam);
+                        case Keys.Up:
+                        case Keys.Down:
+                        case Keys.Left:
+                        case Keys.Right:
+                            BeginInvoke(new Action(() =>
+                            {
+                                foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
+                                {
+                                    target.MoveProgrammatically(key);
+                                }
+                            }));
+                            break;
                     }
                     break;
             }
@@ -101,10 +129,9 @@ namespace move_picture_box_with_arrow_keys
                     {
                         if(preview.IntersectsWith(control.Bounds))
                         {
-                            CollisionDetected?.Invoke(
-                                this, 
-                                new CollisionDetectedEventArgs(control: control));
-                            return true;
+                            var e = new CollisionDetectedEventArgs(control: control);
+                            CollisionDetected?.Invoke(this, e);
+                            return !e.Cancel;
                         }
                     }
                 }
@@ -112,14 +139,14 @@ namespace move_picture_box_with_arrow_keys
             }
         }
         public static event CollisionDetectedEventHandler CollisionDetected;
-        protected override void OnClick(EventArgs e)
+        protected override void OnMouseDown(MouseEventArgs e)
         {
-            base.OnClick(e);
-            foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>()) 
-            { 
-                if(!ReferenceEquals(control, this)) control.IsMoveTarget= false;
+            base.OnMouseDown(e);
+            foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
+            {
+                if (!ReferenceEquals(control, this)) control.IsMoveTarget = false;
             }
-            IsMoveTarget= true;
+            IsMoveTarget = true;
         }
         bool _isMoveTarget = false;
 
@@ -140,7 +167,7 @@ namespace move_picture_box_with_arrow_keys
     }
 
     delegate void CollisionDetectedEventHandler(Object sender, CollisionDetectedEventArgs e);
-    class CollisionDetectedEventArgs : EventArgs
+    class CollisionDetectedEventArgs : CancelEventArgs
     {
         public CollisionDetectedEventArgs(Control control)
         {

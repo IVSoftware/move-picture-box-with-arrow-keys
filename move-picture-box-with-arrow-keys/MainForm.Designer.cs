@@ -30,10 +30,13 @@ namespace move_picture_box_with_arrow_keys
         private void InitializeComponent()
         {
             this.pictureBoxGreen = new move_picture_box_with_arrow_keys.ArrowKeyPictureBox();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.richTextBox = new System.Windows.Forms.RichTextBox();
             this.pictureBoxBlue = new move_picture_box_with_arrow_keys.ArrowKeyPictureBox();
+            this.pictureBoxPortal = new move_picture_box_with_arrow_keys.ArrowKeyPictureBox();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxGreen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlue)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPortal)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBoxGreen
@@ -46,45 +49,73 @@ namespace move_picture_box_with_arrow_keys
             this.pictureBoxGreen.TabIndex = 0;
             this.pictureBoxGreen.TabStop = false;
             // 
-            // richTextBox1
+            // richTextBox
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(24, 213);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(425, 184);
-            this.richTextBox1.TabIndex = 1;
-            this.richTextBox1.Text = "";
+            this.richTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBox.Location = new System.Drawing.Point(24, 184);
+            this.richTextBox.Name = "richTextBox";
+            this.richTextBox.Size = new System.Drawing.Size(525, 348);
+            this.richTextBox.TabIndex = 1;
+            this.richTextBox.Text = "";
             // 
             // pictureBoxBlue
             // 
             this.pictureBoxBlue.BackColor = System.Drawing.Color.LightBlue;
             this.pictureBoxBlue.IsMoveTarget = false;
-            this.pictureBoxBlue.Location = new System.Drawing.Point(101, 45);
+            this.pictureBoxBlue.Location = new System.Drawing.Point(123, 12);
             this.pictureBoxBlue.Name = "pictureBoxBlue";
             this.pictureBoxBlue.Size = new System.Drawing.Size(60, 60);
             this.pictureBoxBlue.TabIndex = 0;
             this.pictureBoxBlue.TabStop = false;
             // 
+            // pictureBoxPortal
+            // 
+            this.pictureBoxPortal.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(16)))), ((int)(((byte)(16)))));
+            this.pictureBoxPortal.IsMoveTarget = false;
+            this.pictureBoxPortal.Location = new System.Drawing.Point(139, 98);
+            this.pictureBoxPortal.Name = "pictureBoxPortal";
+            this.pictureBoxPortal.Size = new System.Drawing.Size(60, 60);
+            this.pictureBoxPortal.TabIndex = 0;
+            this.pictureBoxPortal.TabStop = false;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(217, 118);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(114, 25);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "<- The Portal";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(478, 409);
-            this.Controls.Add(this.richTextBox1);
+            this.ClientSize = new System.Drawing.Size(578, 544);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.richTextBox);
+            this.Controls.Add(this.pictureBoxPortal);
             this.Controls.Add(this.pictureBoxBlue);
             this.Controls.Add(this.pictureBoxGreen);
             this.Name = "MainForm";
             this.Text = "Main Form";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxGreen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlue)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPortal)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
         private ArrowKeyPictureBox pictureBoxGreen;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox richTextBox;
         private ArrowKeyPictureBox pictureBoxBlue;
+        private ArrowKeyPictureBox pictureBoxPortal;
+        private System.Windows.Forms.Label label1;
     }
 }
 
