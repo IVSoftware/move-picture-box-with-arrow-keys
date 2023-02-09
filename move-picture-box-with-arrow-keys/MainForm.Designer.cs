@@ -42,7 +42,7 @@ namespace move_picture_box_with_arrow_keys
             // pictureBoxGreen
             // 
             this.pictureBoxGreen.BackColor = System.Drawing.Color.LightGreen;
-            this.pictureBoxGreen.IsMoveTarget = false;
+            this.pictureBoxGreen.IsCurrentMoveTarget = false;
             this.pictureBoxGreen.Location = new System.Drawing.Point(24, 45);
             this.pictureBoxGreen.Name = "pictureBoxGreen";
             this.pictureBoxGreen.Size = new System.Drawing.Size(60, 60);
@@ -63,7 +63,7 @@ namespace move_picture_box_with_arrow_keys
             // pictureBoxBlue
             // 
             this.pictureBoxBlue.BackColor = System.Drawing.Color.LightBlue;
-            this.pictureBoxBlue.IsMoveTarget = false;
+            this.pictureBoxBlue.IsCurrentMoveTarget = false;
             this.pictureBoxBlue.Location = new System.Drawing.Point(123, 12);
             this.pictureBoxBlue.Name = "pictureBoxBlue";
             this.pictureBoxBlue.Size = new System.Drawing.Size(60, 60);
@@ -73,7 +73,7 @@ namespace move_picture_box_with_arrow_keys
             // pictureBoxPortal
             // 
             this.pictureBoxPortal.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(16)))), ((int)(((byte)(16)))));
-            this.pictureBoxPortal.IsMoveTarget = false;
+            this.pictureBoxPortal.IsCurrentMoveTarget = false;
             this.pictureBoxPortal.Location = new System.Drawing.Point(139, 98);
             this.pictureBoxPortal.Name = "pictureBoxPortal";
             this.pictureBoxPortal.Size = new System.Drawing.Size(60, 60);

@@ -18,6 +18,38 @@ namespace move_picture_box_with_arrow_keys
             ArrowKeyPictureBox.CollisionDetected += onAnyCollisionDetected;
         }
 
+        const int WM_KEYDOWN = 0x0100;
+        public bool PreFilterMessage(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WM_KEYDOWN:
+                    if (Controls.OfType<TextBoxBase>().Any(_ => _.Focused))
+                    {   /* G T K */
+                    }
+                    else
+                    {
+                        Keys key = (Keys)m.WParam;
+                        switch (key)
+                        {
+                            case Keys.Up:
+                            case Keys.Down:
+                            case Keys.Left:
+                            case Keys.Right:
+                                BeginInvoke(new Action(() =>
+                                {
+                                    foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
+                                    {
+                                        target.MoveProgrammatically(key);
+                                    }
+                                }));
+                                break;
+                        }
+                    }
+                    break;
+            }
+            return false;
+        }
         private void onAnyCollisionDetected(object sender, CollisionDetectedEventArgs e)
         {
             e.Cancel = !e.Control.Name.Contains("Portal");
@@ -25,43 +57,23 @@ namespace move_picture_box_with_arrow_keys
             {
                 if (!_prevWarning.Equals(control.Bounds))
                 {
-                    List<string> builder = new List<string>();
-                    builder.Add("Collision");
-                    builder.Add($"Moving {control.Name} @ {control.Bounds}");
                     richTextBox.SelectionColor = e.Cancel ? Color.Green : Color.Red;
+                    richTextBox.Font = new Font(richTextBox.Font, FontStyle.Bold);
+                    richTextBox.AppendText($"{Environment.NewLine}Collision{Environment.NewLine}");
+                    richTextBox.Font = new Font(richTextBox.Font, FontStyle.Regular);
+                    richTextBox.SelectionColor = Color.Chocolate;
+
+                    List<string> builder = new List<string>();
+                    builder.Add($"Moving: {control.Name}");
+                    builder.Add( $"@ {control.Bounds}");
+                    builder.Add($"Collided with: {e.Control.Name}");
+                    builder.Add($"@ {e.Control.Bounds}");
                     richTextBox.AppendText($"{string.Join(Environment.NewLine, builder)}{Environment.NewLine}");
                     _prevWarning = control.Bounds;
                 }
             }
         }
         Rectangle _prevWarning = new Rectangle();
-
-        const int WM_KEYDOWN = 0x0100;
-        public bool PreFilterMessage(ref Message m)
-        {
-            switch (m.Msg)
-            {
-                case WM_KEYDOWN:
-                    Keys key = (Keys)m.WParam;
-                    switch (key)
-                    {
-                        case Keys.Up:
-                        case Keys.Down:
-                        case Keys.Left:
-                        case Keys.Right:
-                            BeginInvoke(new Action(() =>
-                            {
-                                foreach (var target in Controls.OfType<ArrowKeyPictureBox>())
-                                {
-                                    target.MoveProgrammatically(key);
-                                }
-                            }));
-                            break;
-                    }
-                    break;
-            }
-            return false;
-        }
     }
     class ArrowKeyPictureBox : PictureBox
     {
@@ -69,7 +81,7 @@ namespace move_picture_box_with_arrow_keys
         public void MoveProgrammatically(Keys direction)
         {
             Rectangle preview = Bounds;
-            if (IsMoveTarget)
+            if (IsCurrentMoveTarget)
             {
                 BringToFront();
                 switch (direction)
@@ -142,15 +154,16 @@ namespace move_picture_box_with_arrow_keys
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            Focus();
             foreach (var control in Parent.Controls.OfType<ArrowKeyPictureBox>())
             {
-                if (!ReferenceEquals(control, this)) control.IsMoveTarget = false;
+                if (!ReferenceEquals(control, this)) control.IsCurrentMoveTarget = false;
             }
-            IsMoveTarget = true;
+            IsCurrentMoveTarget = true;
         }
         bool _isMoveTarget = false;
 
-        public bool IsMoveTarget
+        public bool IsCurrentMoveTarget
         {
             get => _isMoveTarget;
             set
@@ -158,11 +171,20 @@ namespace move_picture_box_with_arrow_keys
                 if (!Equals(_isMoveTarget, value))
                 {
                     _isMoveTarget = value;
-                    BorderStyle = IsMoveTarget ?
-                        BorderStyle.FixedSingle :
-                        BorderStyle.None;
+                    Refresh();
                 }
             }
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var rect = new Rectangle(
+                e.ClipRectangle.Location, 
+                new Size(
+                    (int)(e.ClipRectangle.Width - Pens.Red.Width),
+                    (int)(e.ClipRectangle.Height - Pens.Red.Width)));
+            e.Graphics.DrawRectangle(Pens.Red, rect);
+            //e.Graphics.FillRectangle(Brushes.Red, e.ClipRectangle);
         }
     }
 
